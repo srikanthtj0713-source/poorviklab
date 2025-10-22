@@ -1,0 +1,78 @@
+{
+  "CRP": {
+    "test": "CRP",
+    "unit": "mg/L",
+    "normalRange": "<6.0",
+    "notes": [
+      "Mild elevations may occur in infection, inflammation, trauma.",
+      "High-sensitivity CRP (hs-CRP) is used for cardiovascular risk stratification."
+    ],
+    "interferences": [
+      { "name": "Biotin", "note": "High biotin may interfere with certain immunoassays" }
+    ],
+    "source": "Local lab reference"
+  },
+  "hs-CRP": {
+    "test": "hs-CRP",
+    "unit": "mg/L",
+    "normalRange": "<1.0",
+    "notes": [
+      "<1.0 low CVD risk, 1.0–3.0 average, >3.0 high (context dependent)."
+    ],
+    "source": "Local lab reference"
+  },
+  "Widal Test": {
+    "test": "Widal Test",
+    "notes": [
+      "Interpret with clinical correlation and local baseline titers.",
+      "Rising titer on paired samples is more significant than a single value."
+    ],
+    "source": "Local lab reference"
+  },
+  "Widal Method": {
+    "test": "Widal Method",
+    "notes": [
+      "Slide method is qualitative screening; tube method allows semi-quantitative titers."
+    ],
+    "source": "Local lab reference"
+  },
+  "Widal TH Titer": {
+    "test": "Widal TH Titer",
+    "notes": [
+      "Significant titer thresholds vary; many labs consider \"\u2265 1:160\" significant locally."
+    ],
+    "source": "Local lab reference"
+  },
+  "Dengue": {
+    "test": "Dengue",
+    "notes": [
+      "NS1 antigen positivity suggests early infection.",
+      "IgM suggests recent infection; IgG alone may indicate past exposure."
+    ],
+    "source": "Local lab reference"
+  },
+  "Dengue NS1 Antigen": {
+    "test": "Dengue NS1 Antigen",
+    "notes": [
+      "Typically positive days 1–7 of illness."
+    ],
+    "source": "Local lab reference"
+  },
+  "Urine Protein": {
+    "test": "Urine Protein",
+    "normalRange": "Negative",
+    "notes": [
+      "Trace–3+ semi-quantitative; correlate with specific gravity and clinical context."
+    ],
+    "source": "Local lab reference"
+  },
+  "VLDL Cholesterol": {
+    "test": "VLDL Cholesterol",
+    "unit": "mg/dL",
+    "normalRange": "5-40",
+    "notes": [
+      "Often estimated by TG/5 (mg/dL) when TG < 400 mg/dL."
+    ],
+    "source": "Local lab reference"
+  }
+}

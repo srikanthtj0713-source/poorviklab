@@ -1,0 +1,57 @@
+{
+  "Biochemistry": [
+    { "when": { "test": "Creatinine", "op": ">", "value": 1.2 }, "message": "Elevated creatinine suggests reduced kidney filtration; correlate with hydration, CKD risk, nephrotoxic drugs." },
+    { "when": { "test": "Urea", "op": ">", "value": 45 }, "message": "Raised urea may reflect dehydration, protein catabolism, or renal impairment." },
+    { "when": { "test": "BUN", "op": ">", "value": 23 }, "message": "High BUN may reflect dehydration, high protein intake, or renal impairment." },
+    { "when": { "test": "BUN/Creatinine", "op": ">", "value": 20 }, "message": "High BUN/Creatinine ratio suggests pre-renal azotemia (e.g., dehydration); review volume status." },
+    { "when": { "test": "Uric Acid", "op": ">", "value": 7.2 }, "message": "Hyperuricemia increases gout risk; assess diet, alcohol, diuretics." },
+    { "when": { "test": "Sodium", "op": ">", "value": 145 }, "message": "Hypernatremia—consider dehydration or endocrine causes; evaluate osmolality and fluids." },
+    { "when": { "test": "Sodium", "op": "<", "value": 135 }, "message": "Hyponatremia—review medications, SIADH risk, and volume status." },
+    { "when": { "test": "Potassium", "op": ">", "value": 5.5 }, "message": "Hyperkalemia has arrhythmia risk; check renal function and medications (ACEi/ARB/K-sparing)." },
+    { "when": { "test": "Potassium", "op": "<", "value": 3.5 }, "message": "Hypokalemia may cause cramps/arrhythmia; assess GI losses and diuretics." },
+    { "when": { "test": "Chloride", "op": ">", "value": 107 }, "message": "Hyperchloremia may reflect metabolic acidosis or saline effect; correlate with bicarbonate." },
+    { "when": { "test": "Chloride", "op": "<", "value": 98 }, "message": "Hypochloremia may occur with metabolic alkalosis or vomiting; correlate clinically." },
+    { "when": { "test": "eGFR", "op": "<", "value": 60 }, "message": "eGFR <60 mL/min/1.73m² suggests CKD (≥3 months) if persistent; stage and manage risk factors." },
+    { "when": { "test": "HbA1c", "op": ">=", "value": 6.5 }, "message": "HbA1c above diagnostic threshold suggests diabetes—optimize glycemic management." }
+  ],
+  "Liver Function Test": [
+    { "when": { "test": "ALT", "op": ">", "value": 40 }, "message": "ALT elevation suggests hepatocellular injury; review drugs, NAFLD, viral hepatitis." },
+    { "when": { "test": "AST", "op": ">", "value": 40 }, "message": "AST elevation with ALT suggests hepatocellular injury; AST>ALT can suggest alcohol." },
+    { "when": { "test": "Alkaline Phosphatase", "op": ">", "value": 120 }, "message": "Raised ALP suggests cholestasis or bone turnover; correlate with GGT and bilirubin." },
+    { "when": { "test": "Total Bilirubin", "op": ">", "value": 1.2 }, "message": "Hyperbilirubinemia—distinguish conjugated vs unconjugated; assess cholestasis/hemolysis." },
+    { "when": { "test": "Direct Bilirubin", "op": ">", "value": 0.3 }, "message": "Raised direct bilirubin suggests cholestasis/hepatocellular dysfunction; evaluate ALP/GGT." },
+    { "when": { "test": "Albumin", "op": "<", "value": 3.5 }, "message": "Hypoalbuminemia may indicate chronic liver disease, nephrotic loss, or malnutrition." },
+    { "when": { "test": "Total Protein", "op": "<", "value": 6.0 }, "message": "Low total protein may reflect malnutrition, liver disease, or protein-losing states." },
+    { "all": [ {"test": "ALT", "op": ">", "value": 40 }, {"test": "AST", "op": ">", "value": 40 } ], "message": "Transaminitis pattern—consider viral hepatitis, NAFLD/NASH, drugs; assess severity and trend." },
+    { "all": [ {"test": "Alkaline Phosphatase", "op": ">", "value": 120 }, {"test": "Direct Bilirubin", "op": ">", "value": 0.3 } ], "message": "Cholestatic pattern—evaluate bile ducts (ALP with direct bilirubin); consider obstruction or cholestasis.", "group": "Liver Function Test" }
+  ],
+  "Lipid Profile": [
+    { "when": { "test": "LDL Cholesterol", "op": ">=", "value": 130 }, "message": "Elevated LDL increases ASCVD risk; consider statin therapy as per guidelines." },
+    { "when": { "test": "LDL Cholesterol", "op": ">=", "value": 190 }, "message": "Very high LDL—evaluate for familial hypercholesterolemia; initiate high-intensity statin." },
+    { "when": { "test": "HDL Cholesterol", "op": "<", "value": 40 }, "message": "Low HDL is a cardiovascular risk marker; optimize lifestyle (aerobic activity, weight)." },
+    { "when": { "test": "Triglycerides", "op": ">=", "value": 150 }, "message": "Hypertriglyceridemia—address diet, alcohol, glycemic control; very high levels risk pancreatitis." },
+    { "when": { "test": "Triglycerides", "op": ">=", "value": 500 }, "message": "Severe hypertriglyceridemia—pancreatitis risk; urgent lifestyle and pharmacologic therapy." }
+  ],
+  "Thyroid Profile": [
+    { "when": { "test": "TSH", "op": ">", "value": 5 }, "message": "Elevated TSH suggests hypothyroidism; correlate with T4 and symptoms." },
+    { "when": { "test": "TSH", "op": "<", "value": 0.4 }, "message": "Low TSH suggests hyperthyroidism or suppression; correlate with T3/T4." },
+    { "all": [ {"test": "TSH", "op": ">", "value": 5 }, {"test": "T4", "op": "==", "value": 0 } ], "message": "Subclinical hypothyroidism pattern (TSH high, T4 normal)—monitor and correlate clinically.", "group": "Thyroid Profile" }
+  ],
+  "CBC": [
+    { "when": { "test": "Hemoglobin", "op": "<", "value": 12 }, "message": "Low hemoglobin indicates anemia; pattern with MCV/MCHC helps classify (microcytic, normocytic, macrocytic)." },
+    { "when": { "test": "MCV", "op": "<", "value": 80 }, "message": "Microcytosis suggests iron deficiency or thalassemia trait—check ferritin, RBC indices." },
+    { "when": { "test": "MCV", "op": ">", "value": 100 }, "message": "Macrocytosis suggests B12/folate deficiency, liver disease, hypothyroid, or medications." },
+    { "when": { "test": "WBC Count", "op": ">", "value": 11 }, "message": "Leukocytosis—consider infection, inflammation, stress; review differential." },
+    { "when": { "test": "Platelet Count", "op": "<", "value": 150 }, "message": "Thrombocytopenia—assess bleeding risk, drugs, infections, immune causes." },
+    { "all": [ {"test": "Hemoglobin", "op": "<", "value": 12 }, {"test": "MCV", "op": "<", "value": 80 } ], "message": "Microcytic anemia likely—assess iron deficiency (ferritin) vs thalassemia trait.", "group": "CBC" },
+    { "all": [ {"test": "Hemoglobin", "op": "<", "value": 12 }, {"test": "MCV", "op": ">", "value": 100 } ], "message": "Macrocytic anemia—consider B12/folate deficiency, alcohol, liver disease, hypothyroidism.", "group": "CBC" }
+  ],
+  "Immunology": [
+    { "when": { "test": "CRP", "op": ">=", "value": 6.0 }, "message": "CRP elevated—suggests active inflammation/infection; track trend and correlate clinically." },
+    { "when": { "test": "hs-CRP", "op": ">=", "value": 3.0 }, "message": "High hs-CRP indicates elevated CV risk; optimize risk factors." }
+  ],
+  "Renal Function Test": [
+    { "when": { "test": "Creatinine", "op": ">", "value": 1.2 }, "message": "Renal panel: creatinine raised—assess CKD, AKI, hydration, and nephrotoxic drugs." },
+    { "when": { "test": "eGFR", "op": "<", "value": 60 }, "message": "Renal panel: eGFR <60 suggests CKD if persistent; stage and manage BP/glucose." }
+  ]
+}
