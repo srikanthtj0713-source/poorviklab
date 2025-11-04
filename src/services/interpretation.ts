@@ -124,6 +124,45 @@ export function evaluateInterpretationsGrouped(rows: SimpleRow[]): Record<string
     }
   }
 
+  // Auto-generate interpretations for qualitative and semi-quantitative results
+  for (const row of rows) {
+    const name = row.testName;
+    const valueRaw = String(row.value).trim();
+    if (!valueRaw) continue;
+    const value = valueRaw.toLowerCase();
+    const loc = findCategoryAndPanel(name);
+    const bucket = loc.panel || loc.category || 'Findings';
+
+    let msg: string | undefined;
+    // Generic positive/reactive
+    if (value === 'positive' || value === 'reactive') {
+      msg = `${name}: ${valueRaw} — presence detected; correlate clinically.`;
+    }
+    // Semi-quantitative (e.g., Trace/1+/2+/3+/4+)
+    if (!msg && /^(trace|1\+|2\+|3\+|4\+)$/.test(valueRaw)) {
+      msg = `${name}: ${valueRaw} — semi‑quantitative increase noted.`;
+    }
+    // Specific helpers
+    const low = name.toLowerCase();
+    if (!msg && low.includes('stool occult') && value === 'positive') {
+      msg = `Stool Occult Blood: Positive — consider GI bleeding; advise clinical correlation.`;
+    }
+    if (!msg && low.includes('urine blood') && /^(1\+|2\+|3\+)$/.test(valueRaw)) {
+      msg = `Urine Blood: ${valueRaw} — hematuria; recommend microscopy correlation.`;
+    }
+    if (!msg && low.includes('urine protein') && /^(trace|1\+|2\+|3\+)$/.test(valueRaw)) {
+      msg = `Urine Protein: ${valueRaw} — proteinuria; evaluate renal status.`;
+    }
+    if (!msg && low.includes('culture') && value !== 'no growth') {
+      msg = `${name}: ${valueRaw} — organism(s) reported; manage per sensitivity profile.`;
+    }
+
+    if (msg) {
+      if (!result[bucket]) result[bucket] = [];
+      result[bucket].push(msg);
+    }
+  }
+
   // Deduplicate per group while preserving order
   for (const key of Object.keys(result)) {
     const seen = new Set<string>();

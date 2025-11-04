@@ -25,6 +25,7 @@ export interface TestPanel {
     placeholder?: string;
     type?: 'number' | 'select';
     options?: string[];
+    info?: string;
   }[];
 }
 
@@ -66,10 +67,10 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'kft',
         name: 'Kidney Function Test (KFT)',
         tests: [
-          { name: 'Urea', unit: 'mg/dL', normalRange: '7-20' },
-          { name: 'Creatinine', unit: 'mg/dL', normalRange: '0.6-1.2' },
-          { name: 'Uric Acid', unit: 'mg/dL', normalRange: '3.5-7.2' },
-          { name: 'eGFR', unit: 'mL/min/1.73m²', normalRange: '>60' },
+          { name: 'Urea', unit: 'mg/dL', normalRange: '7-20', info: 'Waste from protein breakdown; rises in dehydration or kidney issues.' },
+          { name: 'Creatinine', unit: 'mg/dL', normalRange: '0.6-1.2', info: 'Marker of kidney filtration (GFR); persistent elevation suggests CKD.' },
+          { name: 'Uric Acid', unit: 'mg/dL', normalRange: '3.5-7.2', info: 'High levels may cause gout and kidney stones.' },
+          { name: 'eGFR', unit: 'mL/min/1.73m²', normalRange: '>60', info: 'Estimated kidney filtration rate; <60 suggests chronic kidney disease.' },
           { name: 'BUN', unit: 'mg/dL', normalRange: '7-23' },
           { name: 'Urea/Creatinine Ratio', unit: 'ratio', normalRange: '10-20' },
           { name: 'Cystatin C', unit: 'mg/L', normalRange: '0.5-1.2' },
@@ -83,13 +84,13 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'lft',
         name: 'Liver Function Test (LFT)',
         tests: [
-          { name: 'SGPT/ALT', unit: 'U/L', normalRange: '7-56' },
-          { name: 'SGOT/AST', unit: 'U/L', normalRange: '10-40' },
-          { name: 'Total Bilirubin', unit: 'mg/dL', normalRange: '0.3-1.0' },
+          { name: 'SGPT/ALT', unit: 'U/L', normalRange: '7-56', info: 'Liver enzyme; rises with hepatocellular injury.' },
+          { name: 'SGOT/AST', unit: 'U/L', normalRange: '10-40', info: 'Liver/cardiac enzyme; elevated with liver or muscle injury.' },
+          { name: 'Total Bilirubin', unit: 'mg/dL', normalRange: '0.3-1.0', info: 'Pigment from RBC breakdown; high in jaundice or bile obstruction.' },
           { name: 'Direct Bilirubin', unit: 'mg/dL', normalRange: '0.0-0.3' },
           { name: 'Indirect Bilirubin', unit: 'mg/dL', normalRange: '0.2-0.7' },
-          { name: 'Alkaline Phosphatase (ALP)', unit: 'U/L', normalRange: '44-147' },
-          { name: 'Gamma GT (GGT)', unit: 'U/L', normalRange: '9-48' },
+          { name: 'Alkaline Phosphatase (ALP)', unit: 'U/L', normalRange: '44-147', info: 'Bile duct/bone activity; high in cholestasis or bone disease.' },
+          { name: 'Gamma GT (GGT)', unit: 'U/L', normalRange: '9-48', info: 'Supports cholestasis and alcohol-related liver disease.' },
           { name: 'Albumin', unit: 'g/dL', normalRange: '3.5-5.0' },
           { name: 'Total Protein', unit: 'g/dL', normalRange: '6.0-8.3' },
         ]
@@ -98,10 +99,10 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'lipid',
         name: 'Lipid Profile',
         tests: [
-          { name: 'Total Cholesterol', unit: 'mg/dL', normalRange: '<200' },
-          { name: 'HDL Cholesterol', unit: 'mg/dL', normalRange: '>40' },
-          { name: 'LDL Cholesterol', unit: 'mg/dL', normalRange: '<100' },
-          { name: 'Triglycerides', unit: 'mg/dL', normalRange: '<150' },
+          { name: 'Total Cholesterol', unit: 'mg/dL', normalRange: '<200', info: 'Sum of blood lipids; higher levels increase CVD risk.' },
+          { name: 'HDL Cholesterol', unit: 'mg/dL', normalRange: '>40', info: '“Good” cholesterol; higher is protective.' },
+          { name: 'LDL Cholesterol', unit: 'mg/dL', normalRange: '<100', info: '“Bad” cholesterol; target lowered in high CVD risk.' },
+          { name: 'Triglycerides', unit: 'mg/dL', normalRange: '<150', info: 'Blood fats; high in insulin resistance and pancreatitis risk.' },
           { name: 'VLDL Cholesterol', unit: 'mg/dL', normalRange: '5-40' },
         ]
       },
@@ -109,34 +110,36 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'thyroid',
         name: 'Thyroid Profile',
         tests: [
-          { name: 'T3', unit: 'ng/dL', normalRange: '80-200' },
-          { name: 'T4', unit: 'μg/dL', normalRange: '4.5-12.0' },
-          { name: 'TSH', unit: 'μIU/mL', normalRange: '0.27-4.2' },
+          { name: 'T3', unit: 'ng/dL', normalRange: '80-200', info: 'Active thyroid hormone; low with hypothyroidism.' },
+          { name: 'T4', unit: 'μg/dL', normalRange: '4.5-12.0', info: 'Thyroxine; together with TSH assesses thyroid function.' },
+          { name: 'TSH', unit: 'μIU/mL', normalRange: '0.27-4.2', info: 'Pituitary hormone; high in hypothyroidism, low in hyperthyroidism.' },
         ]
       },
       {
         id: 'sugar',
         name: 'Blood Sugar',
         tests: [
-          { name: 'Fasting Glucose', unit: 'mg/dL', normalRange: '70-100' },
-          { name: 'HbA1c', unit: '%', normalRange: '<5.7' },
+          { name: 'Fasting Glucose', unit: 'mg/dL', normalRange: '70-100', info: 'Glucose after 8–12h fast; screens for diabetes.' },
+          { name: 'Postprandial Glucose', unit: 'mg/dL', normalRange: '<140', info: 'Measured ~2h after meal; reflects post‑meal control.' },
+          { name: 'Random Glucose', unit: 'mg/dL', normalRange: '<140', info: 'Anytime glucose; very high values suggest diabetes.' },
+          { name: 'HbA1c', unit: '%', normalRange: '<5.7', info: '3‑month average glucose; used to diagnose and monitor diabetes.' },
         ]
       },
       {
         id: 'electrolytes',
         name: 'Electrolytes',
         tests: [
-          { name: 'Sodium', unit: 'mEq/L', normalRange: '136-145' },
-          { name: 'Potassium', unit: 'mEq/L', normalRange: '3.5-5.1' },
-          { name: 'Chloride', unit: 'mEq/L', normalRange: '98-107' },
+          { name: 'Sodium', unit: 'mEq/L', normalRange: '136-145', info: 'Key extracellular electrolyte; reflects water balance.' },
+          { name: 'Potassium', unit: 'mEq/L', normalRange: '3.5-5.1', info: 'Critical for heart rhythm; both high/low can cause arrhythmia.' },
+          { name: 'Chloride', unit: 'mEq/L', normalRange: '98-107', info: 'Tracks acid–base and hydration status with sodium/bicarbonate.' },
         ]
       },
       {
         id: 'renal-extended',
         name: 'Renal Extended',
         tests: [
-          { name: 'BUN', unit: 'mg/dL', normalRange: '7-23' },
-          { name: 'BUN/Creatinine', unit: 'ratio', normalRange: '10-20' },
+          { name: 'BUN', unit: 'mg/dL', normalRange: '7-23', info: 'Protein waste; high in dehydration or renal impairment.' },
+          { name: 'BUN/Creatinine', unit: 'ratio', normalRange: '10-20', info: 'Helps differentiate pre‑renal vs intrinsic kidney causes.' },
         ]
       },
       {
@@ -205,8 +208,8 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'cbc',
         name: 'Complete Blood Count (CBC)',
         tests: [
-          { name: 'Hemoglobin', unit: 'g/dL', normalRange: '12.0-15.5' },
-          { name: 'Hematocrit', unit: '%', normalRange: '36-46' },
+          { name: 'Hemoglobin', unit: 'g/dL', normalRange: '12.0-15.5', info: 'Oxygen-carrying protein; low suggests anemia.' },
+          { name: 'Hematocrit', unit: '%', normalRange: '36-46', info: 'Packed cell volume; mirrors hemoglobin/anaemia status.' },
           { name: 'PCV', unit: '%', normalRange: '36-46' },
           { name: 'HCP', unit: '%', normalRange: '36-46' },
           { name: 'RBC Count', unit: '×10⁶/μL', normalRange: '4.2-5.4' },
@@ -243,7 +246,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'other-hem',
         name: 'Other Tests',
         tests: [
-          { name: 'ESR', unit: 'mm/hr', normalRange: '<20' },
+          { name: 'ESR', unit: 'mm/hr', normalRange: '<20', info: 'Non‑specific inflammation marker; elevated in infection/autoimmune.' },
           { name: 'Reticulocyte Count', unit: '%', normalRange: '0.5-2.5' },
         ]
       },
@@ -268,7 +271,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'cultures',
         name: 'Culture Tests',
         tests: [
-          { name: 'Urine Culture', unit: 'result', normalRange: 'No growth', placeholder: 'e.g., E. coli >100K CFU' },
+          { name: 'Urine Culture', unit: 'result', normalRange: 'No growth', placeholder: 'e.g., E. coli >100K CFU', info: 'Identifies urinary pathogens and guides antibiotic choice.' },
           { name: 'Blood Culture', unit: 'result', normalRange: 'No growth', placeholder: 'e.g., No growth, S. aureus' },
           { name: 'Sputum Culture', unit: 'result', normalRange: 'Normal flora', placeholder: 'e.g., Normal flora, S. pneumoniae' },
           { name: 'Stool Culture', unit: 'result', normalRange: 'Normal flora', placeholder: 'e.g., Salmonella species' },
@@ -309,18 +312,20 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'infectious',
         name: 'Infectious Disease Markers',
         tests: [
-          { name: 'HIV', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
-          { name: 'HBsAg', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
-          { name: 'HCV', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
-          { name: 'VDRL', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
+          { name: 'HIV', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Screening test; positive requires confirmatory assay.' },
+          { name: 'HBsAg', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Hepatitis B surface antigen; positive indicates active infection.' },
+          { name: 'HCV', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Hepatitis C antibody; positive needs RNA confirmation.' },
+          { name: 'VDRL', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Syphilis screening; biological false positives possible—confirm with TPHA.' },
         ]
       },
       {
         id: 'autoimmune',
         name: 'Autoimmune Markers',
         tests: [
-          { name: 'RA Factor', unit: 'IU/mL', normalRange: '<15' },
-          { name: 'CRP', unit: 'mg/L', normalRange: '<6.0', placeholder: '0.0', type: 'number' },
+          { name: 'RA Factor', unit: 'IU/mL', normalRange: '<15', info: 'Autoantibody; supports rheumatoid arthritis with clinical features.' },
+          { name: 'RA Factor (Qualitative)', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
+          { name: 'CRP', unit: 'mg/L', normalRange: '<6.0', placeholder: '0.0', type: 'number', info: 'Acute-phase protein; rises in infection/inflammation.' },
+          { name: 'CRP (Qualitative)', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
           { name: 'hs-CRP', unit: 'mg/L', normalRange: '<1.0', placeholder: '0.00', type: 'number' },
           { name: 'ANA', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
           { name: 'ASO Titer', unit: 'IU/mL', normalRange: '<200' },
@@ -338,10 +343,10 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'urine-routine',
         name: 'Urine Routine',
         tests: [
-          { name: 'Urine Protein', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Trace', '1+', '2+', '3+'] },
+          { name: 'Urine Protein', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Trace', '1+', '2+', '3+'], info: 'Protein in urine indicates renal or glomerular involvement.' },
           { name: 'Urine Sugar', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
           { name: 'Urine Ketones', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
-          { name: 'Urine Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', '1+', '2+', '3+'] },
+          { name: 'Urine Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', '1+', '2+', '3+'], info: 'Blood in urine (hematuria) requires microscopy and clinical correlation.' },
           { name: 'Urine WBC', unit: '/hpf', normalRange: '0-5' },
           { name: 'Urine RBC', unit: '/hpf', normalRange: '0-2' },
           { name: 'Color', unit: 'result', normalRange: '', placeholder: 'e.g., Pale yellow' },
@@ -362,7 +367,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'stool-routine',
         name: 'Stool Routine',
         tests: [
-          { name: 'Stool Occult Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
+          { name: 'Stool Occult Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Detects hidden blood; positive suggests GI bleeding.' },
           { name: 'Stool Parasites', unit: 'result', normalRange: 'None seen', placeholder: 'e.g., Giardia cysts' },
         ]
       },

@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import loincMap from "@/data/loinc-map.json";
 import { evaluateInterpretations, evaluateInterpretationsGrouped } from "@/services/interpretation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import { TEST_CATEGORIES, LabReport } from "@/types/lab";
 import { Printer, Download } from "lucide-react";
 
@@ -113,7 +115,7 @@ function methodForTestName(name: string): string | undefined {
 }
 
 function flattenResults(testResults: Record<string, Record<string, string>>) {
-  const rows: Array<{ category: string; testName: string; value: string; unit: string; normalRange: string }> = [];
+  const rows: Array<{ category: string; testName: string; value: string; unit: string; normalRange: string; info?: string }> = [];
   TEST_CATEGORIES.forEach((cat) => {
     const testsForCat = testResults[cat.id] || {};
     Object.entries(testsForCat).forEach(([name, value]) => {
@@ -125,6 +127,7 @@ function flattenResults(testResults: Record<string, Record<string, string>>) {
         value: String(value),
         unit: testInfo?.unit || "",
         normalRange: testInfo?.normalRange || "",
+        info: (testInfo as any)?.info,
       });
     });
   });
@@ -221,6 +224,7 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
   const rows = useMemo(() => flattenResults(testResults), [testResults]);
   const perCategory = mode === 'per-category';
   const hb = useMemo(() => computeHbA1cExtras(rows), [rows]);
+  const [showMethod, setShowMethod] = React.useState(true);
   const firstPresent = useMemo(() => rows[0], [rows]);
   const categoryName = useMemo(() => {
     if (!firstPresent) return '';
@@ -238,10 +242,18 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hour12: true
   });
-  const registeredAt = fmt(now);
-  const sampleCollectedAt = fmt(new Date(now.getTime() + 30 * 60 * 1000));
-  const reportedAt = fmt(new Date(now.getTime() + 60 * 60 * 1000));
-  const printedAt = fmt(new Date(now.getTime() + 90 * 60 * 1000));
+  const [registeredAt, setRegisteredAt] = React.useState(fmt(now));
+  const [sampleCollectedAt, setSampleCollectedAt] = React.useState(fmt(new Date(now.getTime() + 30 * 60 * 1000)));
+  const [reportedAt, setReportedAt] = React.useState(fmt(new Date(now.getTime() + 60 * 60 * 1000)));
+  const [printedAt, setPrintedAt] = React.useState(fmt(new Date(now.getTime() + 90 * 60 * 1000)));
+
+  const resetTimes = () => {
+    const n = new Date();
+    setRegisteredAt(fmt(n));
+    setSampleCollectedAt(fmt(new Date(n.getTime() + 30 * 60 * 1000)));
+    setReportedAt(fmt(new Date(n.getTime() + 60 * 60 * 1000)));
+    setPrintedAt(fmt(new Date(n.getTime() + 90 * 60 * 1000)));
+  };
 
   const handlePrint = () => window.print();
   const handleDownload = () => window.print(); // let the user "Save as PDF" via print dialog
@@ -266,18 +278,18 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
   const renderHeaderBlock = () => (
     <>
       {/* Top spacer reserved for Lab Name & Address */}
-      <div className="grid grid-cols-[10rem,1fr,10rem] items-start mb-3">
+      <div className="grid grid-cols-[10rem,1fr,10rem] items-start mb-1">
         <div className="flex items-center justify-start pl-2 -mt-4">
           <img
             src="/PURVIK.png"
             alt="Logo"
-            className="h-36 object-contain"
+            className="h-32 object-contain"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = '/placeholder.svg';
             }}
           />
         </div>
-        <div className="text-center mt-4">
+        <div className="text-center mt-2">
           <div className="text-2xl font-bold tracking-widest uppercase leading-snug whitespace-nowrap">PURVIK DIAGNOSTIC CENTRE</div>
           <div className="mt-1 text-[11px] leading-4 text-gray-700">
             <div>A R Khan Complex, Doddamudavadi Sante Gate, Kanakapura Taluk</div>
@@ -286,7 +298,7 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
         </div>
         <div></div>
       </div>
-      <div className="flex items-start justify-between mt-2 pt-2 border-t">
+      <div className="flex items-start justify-between mt-0 pt-0 border-t">
         {/* Left column */}
         <div className="w-1/2 pr-4 space-y-0.5">
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
@@ -382,14 +394,14 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
             <table className="w-full text-[11px] table-fixed">
               <colgroup>
                 <col style={{ width: '30%' }} />
-                <col style={{ width: '20%' }} />
-                <col style={{ width: '20%' }} />
+                <col style={{ width: '25%' }} />
+                <col style={{ width: '15%' }} />
                 <col style={{ width: '30%' }} />
               </colgroup>
               <thead>
                 <tr className="bg-gray-50 border-b">
                   <th className="text-left pl-2 pr-4 py-1.5">Test Name</th>
-                  <th className="text-right pl-3 pr-2 py-1.5">Observed Values</th>
+                  <th className="text-center px-2 py-1.5">Observed Values</th>
                   <th className="text-center px-2 py-1.5">Units</th>
                   <th className="text-left pl-6 pr-2 py-1.5">Biological Reference Intervals</th>
                 </tr>
@@ -404,8 +416,11 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
                       <td className="pl-2 pr-4 py-1.5">
                         <div className="font-medium uppercase">{starred ? '* ' : ''}{r.testName}</div>
                         <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
+                        {r.info && (
+                          <div className="text-[10px] text-gray-700 mt-0.5">{r.info}</div>
+                        )}
                       </td>
-                      <td className="pl-3 pr-1 py-1.5 font-semibold text-right whitespace-nowrap tabular-nums">{r.value}</td>
+                      <td className="px-2 py-1.5 font-semibold text-center whitespace-nowrap tabular-nums">{r.value}</td>
                       <td className="px-2 py-1.5 text-center whitespace-nowrap">{r.unit}</td>
                       <td className="pl-6 pr-2 py-1.5 whitespace-pre-line">{r.normalRange}</td>
                     </tr>
@@ -498,13 +513,42 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
     return (
       <div className="report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px]">
         <style>{`
-        @page { size: A4; margin: 8mm; }
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        @page { size: A4; margin: 2mm 8mm 8mm 8mm; }
+        @media print {
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000 !important; }
+          .text-gray-700 { color: #000 !important; }
+          .bg-gray-50 { background: transparent !important; }
+        }
         @media screen { .report-a4 { max-width: 210mm; } }
         `}</style>
         {categoriesWithRows.map((cat, idx) => (
           <div key={cat.id} style={{ breakAfter: idx === categoriesWithRows.length - 1 ? 'auto' : 'page' }}>
             {renderHeaderBlock()}
+
+  <div className="print:hidden px-3 py-2 border-b bg-gray-50 flex flex-col gap-2">
+        <div className="text-[12px] font-medium">Edit Times</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Collected On</label>
+            <Input value={sampleCollectedAt} onChange={(e) => setSampleCollectedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Registered On</label>
+            <Input value={registeredAt} onChange={(e) => setRegisteredAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Reported On</label>
+            <Input value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Printed On</label>
+            <Input value={printedAt} onChange={(e) => setPrintedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+        </div>
+        <div>
+          <Button variant="outline" size="sm" onClick={resetTimes}>Reset to Now</Button>
+        </div>
+      </div>
             {renderCategoryTable(cat.id)}
             {renderSignatureBlock()}
           </div>
@@ -531,16 +575,43 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
   return (
     <div className="report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px]">
       <style>{`
-        @page { size: A4; margin: 8mm; }
+        @page { size: A4; margin: 2mm 8mm 8mm 8mm; }
         @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000 !important; }
           .report-a4 { width: 100% !important; max-width: initial !important; padding: 0 !important; }
+          .text-gray-700 { color: #000 !important; }
+          .bg-gray-50 { background: transparent !important; }
         }
         @media screen {
           .report-a4 { max-width: 210mm; }
         }
       `}</style>
       {renderHeaderBlock()}
+
+      <div className="print:hidden px-3 py-2 border-b bg-gray-50 flex flex-col gap-2">
+        <div className="text-[12px] font-medium">Edit Times</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Collected On</label>
+            <Input value={sampleCollectedAt} onChange={(e) => setSampleCollectedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Registered On</label>
+            <Input value={registeredAt} onChange={(e) => setRegisteredAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Reported On</label>
+            <Input value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] w-28">Printed On</label>
+            <Input value={printedAt} onChange={(e) => setPrintedAt(e.target.value)} className="h-7 text-[12px]" />
+          </div>
+        </div>
+        <div>
+          <Button variant="outline" size="sm" onClick={resetTimes}>Reset to Now</Button>
+        </div>
+      </div>
 
       <div className="border-t border-b py-1 mt-1 text-center font-semibold uppercase">LAB REPORT</div>
       {panelName && (
@@ -552,14 +623,14 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
           <table className="w-full text-[11px] table-fixed">
             <colgroup>
               <col style={{ width: '30%' }} />
-              <col style={{ width: '20%' }} />
-              <col style={{ width: '20%' }} />
+              <col style={{ width: '25%' }} />
+              <col style={{ width: '15%' }} />
               <col style={{ width: '30%' }} />
             </colgroup>
             <thead>
               <tr className="bg-gray-50 border-b">
                 <th className="text-left pl-2 pr-4 py-1.5">Test Name</th>
-                <th className="text-right pl-3 pr-2 py-1.5">Observed Values</th>
+                <th className="text-center px-2 py-1.5">Observed Values</th>
                 <th className="text-center px-2 py-1.5">Units</th>
                 <th className="text-left pl-6 pr-2 py-1.5">Biological Reference Intervals</th>
               </tr>
@@ -573,9 +644,14 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
                   <tr key={i} className="align-top border-b">
                     <td className="pl-2 pr-4 py-1.5">
                       <div className="font-medium uppercase">{starred ? '* ' : ''}{r.testName}</div>
-                      <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
+                      {showMethod && (
+                        <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
+                      )}
+                      {r.info && (
+                        <div className="text-[10px] text-gray-700 mt-0.5">{r.info}</div>
+                      )}
                     </td>
-                    <td className="pl-3 pr-1 py-1.5 font-semibold text-right whitespace-nowrap tabular-nums">{r.value}</td>
+                    <td className="px-2 py-1.5 font-semibold text-center whitespace-nowrap tabular-nums">{r.value}</td>
                     <td className="px-2 py-1.5 text-center whitespace-nowrap">{r.unit}</td>
                     <td className="pl-6 pr-2 py-1.5 whitespace-pre-line">{r.normalRange}</td>
                   </tr>
@@ -688,6 +764,10 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
           <Button variant="secondary" onClick={handleBackToUpload}>
             ← Back to Upload
           </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <input id="toggle-method" type="checkbox" checked={showMethod} onChange={(e) => setShowMethod(e.target.checked)} />
+          <label htmlFor="toggle-method" className="text-sm">Show Method/LOINC</label>
         </div>
         <div className="text-xs text-gray-500">Generated by LabIntel Pro</div>
       </div>

@@ -121,6 +121,8 @@ function isAbnormalValue(testName: string, value: string): boolean {
       'HIV': ['Positive'],
       'VDRL/RPR': ['Reactive'],
       'ANA': ['Positive'],
+      'CRP (Qualitative)': ['Positive'],
+      'RA Factor (Qualitative)': ['Positive'],
       'Urine Protein': ['Trace', '1+', '2+', '3+'],
       'Urine Glucose': ['Positive'],
       'Urine Ketones': ['Positive'],
@@ -134,7 +136,9 @@ function isAbnormalValue(testName: string, value: string): boolean {
 
   // Handle numeric results
   const abnormalRanges: Record<string, (val: number) => boolean> = {
-    'Glucose (Fasting)': (val) => val > 100 || val < 70,
+    'Fasting Glucose': (val) => val > 100 || val < 70,
+    'Postprandial Glucose': (val) => val >= 140,
+    'Random Glucose': (val) => val >= 140,
     'Creatinine': (val) => val > 1.2 || val < 0.6,
     'BUN': (val) => val > 20 || val < 7,
     'Total Cholesterol': (val) => val >= 200,
@@ -157,6 +161,7 @@ function isAbnormalValue(testName: string, value: string): boolean {
     'Neutrophils': (val) => val > 70 || val < 50,
     'Lymphocytes': (val) => val > 40 || val < 20,
     'CRP': (val) => val >= 3.0,
+    'RA Factor': (val) => val >= 15,
     'ESR': (val) => val >= 20,
     'RF Factor': (val) => val >= 15,
     'Urine WBC': (val) => val > 5,
