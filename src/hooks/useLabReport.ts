@@ -10,6 +10,18 @@ export function useLabReport() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportHistory, setReportHistory] = useState<LabReport[]>([]);
 
+  // Editable header fields for each report
+  const [refDoctor, setRefDoctor] = useState<string>('Self');
+  const [regNo, setRegNo] = useState<string>('BNG2566550');
+
+  const [bookingNo, setBookingNo] = useState<string>(() => generateBookingNo());
+  const [invoiceNo, setInvoiceNo] = useState<string>(() => generateInvoiceNo());
+  const [receiptNo, setReceiptNo] = useState<string>(() => generateReceiptNo());
+  const [billingPrices, setBillingPrices] = useState<Record<string, string>>({});
+  const [billingDiscount, setBillingDiscount] = useState<string>('0');
+  const [billingPaid, setBillingPaid] = useState<string>('0');
+  const [billingPayMode, setBillingPayMode] = useState<string>('Cash');
+
   const updatePatient = (updates: Partial<Patient>) => {
     setPatient(prev => ({ ...prev, ...updates }));
   };
@@ -91,6 +103,15 @@ export function useLabReport() {
     setPatient({});
     setTestResults({});
     setAiAnalysis(undefined);
+    setRefDoctor('Self');
+    setRegNo('BNG2566550');
+    setBookingNo(generateBookingNo());
+    setInvoiceNo(generateInvoiceNo());
+    setReceiptNo(generateReceiptNo());
+    setBillingPrices({});
+    setBillingDiscount('0');
+    setBillingPaid('0');
+    setBillingPayMode('Cash');
   };
 
   return {
@@ -100,13 +121,58 @@ export function useLabReport() {
     testResults,
     aiAnalysis,
     isGeneratingReport,
+    refDoctor,
+    regNo,
+    bookingNo,
+    invoiceNo,
+    receiptNo,
+    billingPrices,
+    billingDiscount,
+    billingPaid,
+    billingPayMode,
     updatePatient,
     updateTestResult,
     completeStep,
     goToStep,
     generateAIAnalysis,
-    resetReport
+    resetReport,
+    setRefDoctor,
+    setRegNo,
+    setBookingNo,
+    setInvoiceNo,
+    setReceiptNo,
+    setBillingPrices,
+    setBillingDiscount,
+    setBillingPaid,
+    setBillingPayMode
   };
+}
+
+function generateInvoiceNo() {
+  const d = new Date();
+  const yyyy = String(d.getFullYear());
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `INV-${yyyy}${mm}${dd}-${rand}`;
+}
+
+function generateBookingNo() {
+  const d = new Date();
+  const yyyy = String(d.getFullYear());
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `BKG-${yyyy}${mm}${dd}-${rand}`;
+}
+
+function generateReceiptNo() {
+  const d = new Date();
+  const yyyy = String(d.getFullYear());
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `RCPT-${yyyy}${mm}${dd}-${rand}`;
 }
 
 function isAbnormalValue(testName: string, value: string): boolean {
@@ -123,10 +189,11 @@ function isAbnormalValue(testName: string, value: string): boolean {
       'ANA': ['Positive'],
       'CRP (Qualitative)': ['Positive'],
       'RA Factor (Qualitative)': ['Positive'],
-      'Urine Protein': ['Trace', '1+', '2+', '3+'],
-      'Urine Glucose': ['Positive'],
+      'Urine Pregnancy Test': ['Positive'],
+      'Urine Protein': ['Trace', '1+', '2+', '3+', '+1', '+2', '+3'],
+      'Urine Sugar': ['Trace', '1+', '2+', '3+', '+1', '+2', '+3'],
       'Urine Ketones': ['Positive'],
-      'Urine Blood': ['1+', '2+', '3+'],
+      'Urine Blood': ['1+', '2+', '3+', '+1', '+2', '+3'],
       'Stool Occult Blood': ['Positive'],
     };
     
@@ -141,6 +208,7 @@ function isAbnormalValue(testName: string, value: string): boolean {
     'Random Glucose': (val) => val >= 140,
     'Creatinine': (val) => val > 1.2 || val < 0.6,
     'BUN': (val) => val > 20 || val < 7,
+    'Serum β-hCG': (val) => val >= 5,
     'Total Cholesterol': (val) => val >= 200,
     'HDL Cholesterol': (val) => val <= 40,
     'LDL Cholesterol': (val) => val >= 100,

@@ -14,6 +14,32 @@ interface PrintableReportProps {
   autoPrint?: boolean;
   mode?: 'all' | 'per-category';
   onBackToUpload?: () => void;
+  refDoctor?: string;
+  regNo?: string;
+  onChangeRefDoctor?: (value: string) => void;
+  onChangeRegNo?: (value: string) => void;
+  onGoToBilling?: () => void;
+}
+
+function withDocumentTitle(tempTitle: string, fn: () => void) {
+  try {
+    const prev = document.title;
+    document.title = tempTitle;
+    fn();
+    setTimeout(() => {
+      document.title = prev;
+    }, 500);
+  } catch {
+    fn();
+  }
+}
+
+function safeFilePart(v: string) {
+  return String(v || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .slice(0, 80);
 }
 
 function Barcode({ value, width = 180, height = 40 }: { value: string; width?: number; height?: number }) {
@@ -220,11 +246,13 @@ function buildPerTestInterpretation(rows: ReturnType<typeof flattenResults>) {
   return items;
 }
 
-export default function PrintableReport({ patient, testResults, autoPrint, mode = 'all', onBackToUpload }: PrintableReportProps) {
+export default function PrintableReport({ patient, testResults, autoPrint, mode = 'all', onBackToUpload, refDoctor = 'Self', regNo = 'BNG2566550', onChangeRefDoctor, onChangeRegNo, onGoToBilling }: PrintableReportProps) {
   const rows = useMemo(() => flattenResults(testResults), [testResults]);
   const perCategory = mode === 'per-category';
   const hb = useMemo(() => computeHbA1cExtras(rows), [rows]);
   const [showMethod, setShowMethod] = React.useState(true);
+  const [exporting, setExporting] = React.useState(false);
+  const reportRef = React.useRef<HTMLDivElement | null>(null);
   const firstPresent = useMemo(() => rows[0], [rows]);
   const categoryName = useMemo(() => {
     if (!firstPresent) return '';
@@ -255,8 +283,40 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
     setPrintedAt(fmt(new Date(n.getTime() + 90 * 60 * 1000)));
   };
 
-  const handlePrint = () => window.print();
-  const handleDownload = () => window.print(); // let the user "Save as PDF" via print dialog
+  const fileBase = useMemo(() => {
+    const name = safeFilePart(patient?.name ? String(patient.name) : 'Patient');
+    const d = new Date();
+    const yyyy = String(d.getFullYear());
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const suffix = perCategory ? 'Report-Per-Category' : 'Report';
+    return `${name}-${suffix}-${yyyy}${mm}${dd}`;
+  }, [patient?.name, perCategory]);
+
+  const handlePrint = () => withDocumentTitle(fileBase, () => window.print());
+  const handleDownload = async () => {
+    if (!reportRef.current) return;
+    setExporting(true);
+    await new Promise((r) => setTimeout(r, 50));
+    try {
+      const mod: any = await import('html2pdf.js');
+      const html2pdf: any = mod?.default ?? mod;
+
+      await html2pdf()
+        .set({
+          margin: [2, 8, 8, 8],
+          filename: `${fileBase}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] },
+        })
+        .from(reportRef.current)
+        .save();
+    } finally {
+      setExporting(false);
+    }
+  };
   const handleBackToUpload = () => {
     try {
       if (onBackToUpload) return onBackToUpload();
@@ -274,6 +334,55 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
       return () => clearTimeout(t);
     }
   }, [autoPrint]);
+
+  const renderScreenControls = () => (
+    <div className="print:hidden px-3 py-2 border-b bg-gray-50 flex flex-col gap-2">
+      <div className="text-[12px] font-medium">Edit Times</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] w-28">Collected On</label>
+          <Input value={sampleCollectedAt} onChange={(e) => setSampleCollectedAt(e.target.value)} className="h-7 text-[12px]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] w-28">Registered On</label>
+          <Input value={registeredAt} onChange={(e) => setRegisteredAt(e.target.value)} className="h-7 text-[12px]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] w-28">Reported On</label>
+          <Input value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} className="h-7 text-[12px]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] w-28">Printed On</label>
+          <Input value={printedAt} onChange={(e) => setPrintedAt(e.target.value)} className="h-7 text-[12px]" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+        <div>
+          <Button variant="outline" size="sm" onClick={resetTimes}>Reset to Now</Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <input id="toggle-method" type="checkbox" checked={showMethod} onChange={(e) => setShowMethod(e.target.checked)} />
+          <label htmlFor="toggle-method" className="text-sm">Show Method/LOINC</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm">Ref. Dr.</label>
+          <Input
+            value={refDoctor}
+            onChange={(e) => onChangeRefDoctor?.(e.target.value)}
+            disabled={!onChangeRefDoctor}
+            className="h-8 text-sm w-44"
+          />
+          <label className="text-sm">Reg No.</label>
+          <Input
+            value={regNo}
+            onChange={(e) => onChangeRegNo?.(e.target.value)}
+            disabled={!onChangeRegNo}
+            className="h-8 text-sm w-44"
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   const renderHeaderBlock = () => (
     <>
@@ -314,17 +423,14 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
             <span className="whitespace-nowrap">Ref. Dr.</span>
             <span className="text-center">:</span>
-            <span className="font-semibold">Self</span>
+            <span className="font-semibold">{refDoctor}</span>
           </div>
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
             <span className="whitespace-nowrap">Reg No.</span>
             <span className="text-center">:</span>
-            <span className="font-bold">BNG2566550</span>
+            <span className="font-bold">{regNo}</span>
           </div>
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
-            <span className="whitespace-nowrap">Sample Type</span>
-            <span className="text-center">:</span>
-            <span className="font-semibold">Serum</span>
           </div>
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
             <span className="whitespace-nowrap">KPME No.</span>
@@ -334,11 +440,6 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
         </div>
         {/* Right column */}
         <div className="w-1/2 pl-4 space-y-0.5">
-          <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
-            <span className="whitespace-nowrap">Vial ID</span>
-            <span className="text-center">:</span>
-            <span className="font-semibold">2101273</span>
-          </div>
           <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
             <span className="whitespace-nowrap">Collected On</span>
             <span className="text-center">:</span>
@@ -353,11 +454,6 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
             <span className="whitespace-nowrap">Reported On</span>
             <span className="text-center">:</span>
             <span className="font-semibold">{reportedAt}</span>
-          </div>
-          <div className="text-[11px] grid items-center" style={{gridTemplateColumns: '6.5rem 0.5rem 1fr'}}>
-            <span className="whitespace-nowrap">Client Code</span>
-            <span className="text-center">:</span>
-            <span className="font-semibold">CMLKAF211</span>
           </div>
         </div>
       </div>
@@ -409,14 +505,15 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
               <tbody>
                 {filteredRows.map((r, i) => {
                   const method = methodForTestName(r.testName);
-                  const starred = ['creatinine','urea','urea nitrogen','bun/creatinine','uric acid','sodium','potassium','chloride'].some(k => r.testName.toLowerCase().includes(k));
                   const loinc = (loincMap as Record<string, string | undefined>)[r.testName];
                   return (
                     <tr key={i} className="align-top border-b">
                       <td className="pl-2 pr-4 py-1.5">
-                        <div className="font-medium uppercase">{starred ? '* ' : ''}{r.testName}</div>
-                        <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
-                        {r.info && (
+                        <div className="font-medium uppercase">{r.testName}</div>
+                        {showMethod && (
+                          <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
+                        )}
+                        {showMethod && r.info && (
                           <div className="text-[10px] text-gray-700 mt-0.5">{r.info}</div>
                         )}
                       </td>
@@ -497,21 +594,22 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
   if (perCategory) {
     const categoriesWithRows = TEST_CATEGORIES.filter(cat => rows.some(r => cat.panels.some(p => p.tests.some(t => t.name === r.testName))));
     const renderSignatureBlock = () => (
-      <div className="mt-6 flex items-end justify-between">
-        <div className="ml-6">
-          <Barcode value={`VIAL:2101273`} />
-        </div>
-        <div className="text-right mr-6">
-          <div className="h-12"></div>
-          <div className="border-t w-48 ml-auto"></div>
-          <div className="text-[11px] font-medium">Pathologist</div>
-          <div className="text-[11px]">Dr. __________________</div>
-          <div className="text-[10px] text-gray-700">MD (Pathology), Reg No: __________</div>
+      <div className="mt-6 flex items-end justify-end">
+        <div className="text-right mr-6 text-[11px]">
+          <div className="mb-4">
+            <div className="h-10"></div>
+            <div className="border-t w-48 ml-auto"></div>
+            <div className="mt-1">Lab Technician Signature</div>
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <span>Date:</span>
+            <span className="border-b border-black w-32 inline-block"></span>
+          </div>
         </div>
       </div>
     );
     return (
-      <div className="report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px]">
+      <div ref={reportRef} className={`report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px] ${exporting ? 'exporting' : ''}`}>
         <style>{`
         @page { size: A4; margin: 2mm 8mm 8mm 8mm; }
         @media print {
@@ -519,49 +617,31 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
           .text-gray-700 { color: #000 !important; }
           .bg-gray-50 { background: transparent !important; }
         }
+        .exporting .export-hide { display: none !important; }
         @media screen { .report-a4 { max-width: 210mm; } }
         `}</style>
+        <div className="export-hide">{renderScreenControls()}</div>
         {categoriesWithRows.map((cat, idx) => (
           <div key={cat.id} style={{ breakAfter: idx === categoriesWithRows.length - 1 ? 'auto' : 'page' }}>
             {renderHeaderBlock()}
-
-  <div className="print:hidden px-3 py-2 border-b bg-gray-50 flex flex-col gap-2">
-        <div className="text-[12px] font-medium">Edit Times</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Collected On</label>
-            <Input value={sampleCollectedAt} onChange={(e) => setSampleCollectedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Registered On</label>
-            <Input value={registeredAt} onChange={(e) => setRegisteredAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Reported On</label>
-            <Input value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Printed On</label>
-            <Input value={printedAt} onChange={(e) => setPrintedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-        </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={resetTimes}>Reset to Now</Button>
-        </div>
-      </div>
             {renderCategoryTable(cat.id)}
             {renderSignatureBlock()}
           </div>
         ))}
 
-        <div className="flex justify-between items-center mt-6 gap-2 print:hidden">
+        <div className="export-hide flex justify-between items-center mt-6 gap-2 print:hidden">
           <div className="flex gap-2">
             <Button variant="outline" onClick={handlePrint}>
               <Printer className="w-4 h-4 mr-2" /> Print
             </Button>
-            <Button onClick={handleDownload} className="bg-gradient-medical">
+            <Button onClick={handleDownload} className="bg-gradient-medical" disabled={exporting}>
               <Download className="w-4 h-4 mr-2" /> Download PDF
             </Button>
+            {onGoToBilling && (
+              <Button variant="outline" onClick={onGoToBilling}>
+                Billing
+              </Button>
+            )}
             <Button variant="secondary" onClick={handleBackToUpload}>
               ← Back to Upload
             </Button>
@@ -573,7 +653,7 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
   }
 
   return (
-    <div className="report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px]">
+    <div ref={reportRef} className={`report-a4 mx-auto bg-white text-black pt-0 px-0 pb-4 print:p-0 text-[12px] ${exporting ? 'exporting' : ''}`}>
       <style>{`
         @page { size: A4; margin: 2mm 8mm 8mm 8mm; }
         @media print {
@@ -582,36 +662,14 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
           .text-gray-700 { color: #000 !important; }
           .bg-gray-50 { background: transparent !important; }
         }
+        .exporting .export-hide { display: none !important; }
         @media screen {
           .report-a4 { max-width: 210mm; }
         }
       `}</style>
       {renderHeaderBlock()}
 
-      <div className="print:hidden px-3 py-2 border-b bg-gray-50 flex flex-col gap-2">
-        <div className="text-[12px] font-medium">Edit Times</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Collected On</label>
-            <Input value={sampleCollectedAt} onChange={(e) => setSampleCollectedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Registered On</label>
-            <Input value={registeredAt} onChange={(e) => setRegisteredAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Reported On</label>
-            <Input value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] w-28">Printed On</label>
-            <Input value={printedAt} onChange={(e) => setPrintedAt(e.target.value)} className="h-7 text-[12px]" />
-          </div>
-        </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={resetTimes}>Reset to Now</Button>
-        </div>
-      </div>
+      <div className="export-hide">{renderScreenControls()}</div>
 
       <div className="border-t border-b py-1 mt-1 text-center font-semibold uppercase">LAB REPORT</div>
       {panelName && (
@@ -638,16 +696,15 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
             <tbody>
               {rows.map((r, i) => {
                 const method = methodForTestName(r.testName);
-                const starred = ['creatinine','urea','urea nitrogen','bun/creatinine','uric acid','sodium','potassium','chloride'].some(k => r.testName.toLowerCase().includes(k));
                 const loinc = (loincMap as Record<string, string | undefined>)[r.testName];
                 return (
                   <tr key={i} className="align-top border-b">
                     <td className="pl-2 pr-4 py-1.5">
-                      <div className="font-medium uppercase">{starred ? '* ' : ''}{r.testName}</div>
+                      <div className="font-medium uppercase">{r.testName}</div>
                       {showMethod && (
                         <div className="text-[10px] text-gray-700">Method: {method || '—'}{loinc ? ` • LOINC: ${loinc}` : ''}</div>
                       )}
-                      {r.info && (
+                      {showMethod && r.info && (
                         <div className="text-[10px] text-gray-700 mt-0.5">{r.info}</div>
                       )}
                     </td>
@@ -736,38 +793,43 @@ export default function PrintableReport({ patient, testResults, autoPrint, mode 
       </div>
       
 
-      {/* Footer branding intentionally excluded per request (no barcode/QR/signature) */}
+      {/* Footer area with Lab Technician Signature */}
 
       <div className="mt-6 flex items-end justify-between">
         <div className="ml-6">
           <Barcode value={`VIAL:2101273`} />
         </div>
-        <div className="text-right mr-6">
-          <div className="h-12"></div>
-          <div className="border-t w-48 ml-auto"></div>
-          <div className="text-[11px] font-medium">Pathologist</div>
-          <div className="text-[11px]">Dr. __________________</div>
-          <div className="text-[10px] text-gray-700">MD (Pathology), Reg No: __________</div>
+        <div className="text-right mr-6 text-[11px]">
+          <div className="mb-4">
+            <div className="h-10"></div>
+            <div className="border-t w-48 ml-auto"></div>
+            <div className="mt-1">Lab Technician Signature</div>
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <span>Date:</span>
+            <span className="border-b border-black w-32 inline-block"></span>
+          </div>
         </div>
       </div>
 
       <div className="text-center text-xs mt-4">---------------- End Of The Report ----------------</div>
 
-      <div className="flex justify-between items-center mt-6 gap-2 print:hidden">
+      <div className="export-hide flex justify-between items-center mt-6 gap-2 print:hidden">
         <div className="flex gap-2">
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-2" /> Print
           </Button>
-          <Button onClick={handleDownload} className="bg-gradient-medical">
+          <Button onClick={handleDownload} className="bg-gradient-medical" disabled={exporting}>
             <Download className="w-4 h-4 mr-2" /> Download PDF
           </Button>
+          {onGoToBilling && (
+            <Button variant="outline" onClick={onGoToBilling}>
+              Billing
+            </Button>
+          )}
           <Button variant="secondary" onClick={handleBackToUpload}>
             ← Back to Upload
           </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <input id="toggle-method" type="checkbox" checked={showMethod} onChange={(e) => setShowMethod(e.target.checked)} />
-          <label htmlFor="toggle-method" className="text-sm">Show Method/LOINC</label>
         </div>
         <div className="text-xs text-gray-500">Generated by LabIntel Pro</div>
       </div>

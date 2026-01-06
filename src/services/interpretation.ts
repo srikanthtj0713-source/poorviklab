@@ -139,7 +139,7 @@ export function evaluateInterpretationsGrouped(rows: SimpleRow[]): Record<string
       msg = `${name}: ${valueRaw} — presence detected; correlate clinically.`;
     }
     // Semi-quantitative (e.g., Trace/1+/2+/3+/4+)
-    if (!msg && /^(trace|1\+|2\+|3\+|4\+)$/.test(valueRaw)) {
+    if (!msg && /^(trace|\+1|1\+|\+2|2\+|\+3|3\+|\+4|4\+)$/.test(valueRaw)) {
       msg = `${name}: ${valueRaw} — semi‑quantitative increase noted.`;
     }
     // Specific helpers
@@ -147,10 +147,10 @@ export function evaluateInterpretationsGrouped(rows: SimpleRow[]): Record<string
     if (!msg && low.includes('stool occult') && value === 'positive') {
       msg = `Stool Occult Blood: Positive — consider GI bleeding; advise clinical correlation.`;
     }
-    if (!msg && low.includes('urine blood') && /^(1\+|2\+|3\+)$/.test(valueRaw)) {
+    if (!msg && low.includes('urine blood') && /^(\+1|1\+|\+2|2\+|\+3|3\+)$/.test(valueRaw)) {
       msg = `Urine Blood: ${valueRaw} — hematuria; recommend microscopy correlation.`;
     }
-    if (!msg && low.includes('urine protein') && /^(trace|1\+|2\+|3\+)$/.test(valueRaw)) {
+    if (!msg && low.includes('urine protein') && /^(trace|\+1|1\+|\+2|2\+|\+3|3\+)$/.test(valueRaw)) {
       msg = `Urine Protein: ${valueRaw} — proteinuria; evaluate renal status.`;
     }
     if (!msg && low.includes('culture') && value !== 'no growth') {

@@ -23,5 +23,17 @@
   "Hb A1c": "HbA1c",
   "Alkaline Phosphatase (ALP)": "Alkaline Phosphatase",
   "Gamma GT (GGT)": "GGT",
-  "Bicarbonate (Total CO2)": "Bicarbonate"
+  "Bicarbonate (Total CO2)": "Bicarbonate",
+  "UPT": "Urine Pregnancy Test",
+  "Urine Pregnancy": "Urine Pregnancy Test",
+  "Pregnancy Test": "Urine Pregnancy Test",
+  "Urine hCG": "Urine Pregnancy Test",
+  "Urine HCG": "Urine Pregnancy Test",
+  "Beta HCG": "Serum β-hCG",
+  "Beta-hCG": "Serum β-hCG",
+  "β-hCG": "Serum β-hCG",
+  "Serum HCG": "Serum β-hCG",
+  "Serum hCG": "Serum β-hCG",
+  "hCG": "Serum β-hCG",
+  "HCG": "Serum β-hCG"
 }

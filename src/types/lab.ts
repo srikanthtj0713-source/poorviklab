@@ -262,6 +262,22 @@ export const TEST_CATEGORIES: TestCategory[] = [
     ]
   },
   {
+    id: 'pregnancy',
+    name: 'Pregnancy',
+    icon: '🤰',
+    description: 'Pregnancy screening and confirmation tests',
+    panels: [
+      {
+        id: 'pregnancy-screen',
+        name: 'Pregnancy Test',
+        tests: [
+          { name: 'Urine Pregnancy Test', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'], info: 'Qualitative screening for hCG in urine.' },
+          { name: 'Serum β-hCG', unit: 'mIU/mL', normalRange: '<5', placeholder: '0.0', type: 'number', info: 'Quantitative hCG; reference depends on gestational age and clinical context.' },
+        ]
+      }
+    ]
+  },
+  {
     id: 'microbiology',
     name: 'Microbiology',
     icon: '🧫',
@@ -295,8 +311,8 @@ export const TEST_CATEGORIES: TestCategory[] = [
           { name: 'Widal Method', unit: 'result', normalRange: 'Slide', type: 'select', options: ['Slide', 'Tube'] },
           { name: 'Widal TO Titer', unit: 'titer', normalRange: '', type: 'select', options: ['1:20', '1:40', '1:80', '1:160', '1:320', '1:640'] },
           { name: 'Widal TH Titer', unit: 'titer', normalRange: '', type: 'select', options: ['1:20', '1:40', '1:80', '1:160', '1:320', '1:640'] },
-          { name: 'Widal AH Titer', unit: 'titer', normalRange: '', type: 'select', options: ['1:20', '1:40', '1:80', '1:160', '1:320', '1:640'] },
-          { name: 'Widal BH Titer', unit: 'titer', normalRange: '', type: 'select', options: ['1:20', '1:40', '1:80', '1:160', '1:320', '1:640'] },
+          { name: 'Widal AH Titer', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
+          { name: 'Widal BH Titer', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
           { name: 'Widal Interpretation', unit: 'result', normalRange: '', placeholder: 'e.g., Significant TH 1:160; correlate clinically' },
         ]
       }
@@ -343,10 +359,10 @@ export const TEST_CATEGORIES: TestCategory[] = [
         id: 'urine-routine',
         name: 'Urine Routine',
         tests: [
-          { name: 'Urine Protein', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Trace', '1+', '2+', '3+'], info: 'Protein in urine indicates renal or glomerular involvement.' },
-          { name: 'Urine Sugar', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
+          { name: 'Urine Protein', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Trace', '+1', '+2', '+3'], info: 'Protein in urine indicates renal or glomerular involvement.' },
+          { name: 'Urine Sugar', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Trace', '+1', '+2', '+3'] },
           { name: 'Urine Ketones', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', 'Positive'] },
-          { name: 'Urine Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', '1+', '2+', '3+'], info: 'Blood in urine (hematuria) requires microscopy and clinical correlation.' },
+          { name: 'Urine Blood', unit: 'result', normalRange: 'Negative', type: 'select', options: ['Negative', '+1', '+2', '+3'], info: 'Blood in urine (hematuria) requires microscopy and clinical correlation.' },
           { name: 'Urine WBC', unit: '/hpf', normalRange: '0-5' },
           { name: 'Urine RBC', unit: '/hpf', normalRange: '0-2' },
           { name: 'Color', unit: 'result', normalRange: '', placeholder: 'e.g., Pale yellow' },
